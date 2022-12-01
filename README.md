@@ -3,7 +3,7 @@
 The N-Gram Text Generator is a simple Python script that generates text (words) based on n-grams.  
 Basically, it takes **n** characters and chooses the next character according to a probability distribution.
 
-# How to use?:
+# How to use?
 
 - Load the library
 - Initialize the model
@@ -21,7 +21,7 @@ Basically, it takes **n** characters and chooses the next character according to
     generator = NGramTextGenerator(n=4, path_corpus="./data/names.csv", seed=42)
 ```
 
-# Show Results:
+## Results:
  - Generating text
    - Once the model is initialised, we can easily generate text by calling the generate_text method.  
      If the n-gram parameter == 3, the model starts with 3 _start tokens_ (e.g. "###") and then generates the next character based on the probability distribution of "###". For example, the probability that the next token is 'a' is 0.25, the probability that the next token is 'b' is 0.33, c is 0.03, d is 0.05, ... z is 0.0001.   
