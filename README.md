@@ -1,7 +1,8 @@
 # NLP - N-Gram Text Generator
 
 The N-Gram Text Generator is a simple Python script that generates text (words) based on n-grams.  
-Basically, it takes **n** characters and chooses the next character according to a probability distribution.
+Basically, it takes **n** characters and chooses the next character according to a probability distribution.  
+(See: Markov Chain)
 
 # How to use?
 
