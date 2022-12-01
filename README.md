@@ -1,3 +1,3 @@
-# NLP - N-Gram text generation
+# NLP - N-Gram Text Generator
 
-This is a simple N-Gram text generation model.
+This project is a simple N-Gram text generator.
