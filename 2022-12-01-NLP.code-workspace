@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.linux": {
+			"PYTHONPATH": "${workspaceRoot}"
+		},
+		"files.exclude": {
+			".pytest_cache": true,
+			"**.ipynb_": true,
+			"**/__py": true,
+			"**/__pycache__": true,
+			"**/**checkpoints": true
+		},
+		"cSpell.words": [
+			"NGRAM"
+		]
+	}
+}
