@@ -1,16 +1,16 @@
 # NLP - N-Gram Text Generator
 
 The N-Gram Text Generator is a simple Python script that generates text (words) based on n-grams.  
-Basically, it takes **n** characters and chooses the next character (semi-randomly) according to a probability distribution which was calculated from a given corpus.
+Basically, it takes **n** characters and chooses the next character according to a probability distribution.
 
 # How to use?:
 
-- Load the model
+- Load the library
 - Initialize the model
   - Parameters: 
     - Define the n-gram size, The amount of characters to use for predicting the next character
-    - Define a path to a corpus file
-  - During the initialization, the model will load its corpus and calculate the probability distribution of the next character given a n-gram
+    - Define a path to the corpus file
+  - During initialisation, the model loads its corpus and starts calculating the probability distributions for each n-gram pair
 
 ```python
 
@@ -22,10 +22,10 @@ Basically, it takes **n** characters and chooses the next character (semi-random
 ```
 
 # Show Results:
- - Generate Text
-   - When the model is initialized, we can easily generate text by calling the generate_text method.  
-     If the n-gram parameter == 3, the model will start with 3 _start tokens_ (e.g. "###") and then it will generate the next character based on the probability distribution of '###'. E.g. the probability of the next character being 'a' is 0.25, the probability of the next character being 'b' is 0.33, c is 0.03, d is 0.05, ... z is 0.0001.   
-     Next, when the model has chosen the next character (e.g. 'a'), it starts to generate the next character based on the probability distribution of '##a'. This continues until the model finds it stopping criteria.   
+ - Generating text
+   - Once the model is initialised, we can easily generate text by calling the generate_text method.  
+     If the n-gram parameter == 3, the model starts with 3 _start tokens_ (e.g. "###") and then generates the next character based on the probability distribution of "###". For example, the probability that the next token is 'a' is 0.25, the probability that the next token is 'b' is 0.33, c is 0.03, d is 0.05, ... z is 0.0001.   
+     Then, when the model has chosen the next character (e.g. 'a'), it starts generating the next character based on the probability distribution of '##a'. This continues until the model finds its stopping criterion.   
 
 ```python
     # Show some results
@@ -61,7 +61,7 @@ Results:
 - ...
 ```
 
-It is also possible to steer the model a little bit by providing some starting characters. 
+Extra: It is also possible to steer the model a bit by giving it some starting characters. 
 
 ```python
     # Show some results
