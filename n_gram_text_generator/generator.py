@@ -23,7 +23,8 @@ class NGramTextGenerator:
 
         # store the parameters
         self.ngram: int = self.validate_n(n)
-        corpus: list[str] = self.load_corpus(path_corpus)
+        self.path_corpus: str = path_corpus
+        corpus: list[str] = self.load_corpus(self.path_corpus)
         self.start_stop_token: str = start_stop_token
 
         # create the lookup tables
@@ -36,9 +37,11 @@ class NGramTextGenerator:
         self.set_dicts_next_char(corpus)
 
         # Create the probability matrix
+        # Add smoothing to avoid zero probabilities (and therefore also the log of 0)
+        # Add 1 extra row, which has an uniform distribution over all characters
         self.probability_matrix = torch.zeros(
-            (len(self.dict_ngram_to_idx), len(self.dict_next_char_to_idx)), dtype=torch.float32
-        )
+            (len(self.dict_ngram_to_idx) + 1, len(self.dict_next_char_to_idx)), dtype=torch.float32
+        ) + 0.0001
         self.fill_probability_matrix(corpus)
 
         # set the seed
@@ -173,7 +176,7 @@ class NGramTextGenerator:
         while True:
 
             # get the index of the ngram
-            ix = self.dict_ngram_to_idx[ngram]
+            ix = self.dict_ngram_to_idx.get(ngram, -1)
 
             # select the probability distribution of the next character given the current ngram
             probabilities_next_char = self.probability_matrix[ix]
@@ -199,6 +202,51 @@ class NGramTextGenerator:
 
         return "".join(output)
 
+    def set_path_corpus(self, path_corpus):
+        """Set the path to the corpus.
+
+        Args:
+            @param: path_corpus (str): Path to the corpus.
+        """
+
+        self.path_corpus = path_corpus
+
+    def evaluate_model(self, items: list[str] = []) -> float:
+        """Evaluate the model on a given corpus.
+
+        Args:
+            @param: items (list[str]): List of items to evaluate the model. (optional)
+            @return: score (float): Score of the model.
+        """
+        # check if items is a list, if not cast it to a list
+        if (not hasattr(items, "__iter__")) or isinstance(items, str):
+            items = [str(items)]
+        if len(items) == 0:
+            # load the corpus, if the test items are empty
+            items = self.load_corpus(self.path_corpus)
+
+        # evaluate
+        probabilities: float = 0.0
+        log_likelihood:float = 0.0
+        n:int = 0
+
+        # Loop over all the items
+        for item in items:
+            
+            # add the start characters and an end character
+            item = self.start_stop_token * self.ngram + item.lower().strip() + self.start_stop_token
+
+            # loop over the items, n-gram wise
+            for ngram, next_char in zip(zip(*[item[i:] for i in range(self.ngram)]), item[self.ngram :]):
+                next_char_prob: float = self.probability_matrix[self.dict_ngram_to_idx.get(''.join(ngram),-1), 
+                                                                self.dict_next_char_to_idx[next_char]]
+                probabilities += next_char_prob
+                log_likelihood += torch.log(next_char_prob)
+                n += 1
+
+        # print the results
+        print(f"N: {n}\tAVG probability: {(probabilities / n):.3f},\tAVG, Negative Log likelihood: { (-log_likelihood / n):.3f}")
+
 
 if __name__ == "__main__":
 
@@ -206,7 +254,7 @@ if __name__ == "__main__":
     from n_gram_text_generator.generator import NGramTextGenerator
 
     # Initialize the generator
-    generator = NGramTextGenerator(n=4, path_corpus="./data/names.csv", seed=42)
+    generator = NGramTextGenerator(n=3, path_corpus="./data/names.csv", seed=42)
 
     # Show some results
     print("--- Show Results ---")
@@ -216,3 +264,11 @@ if __name__ == "__main__":
     print("--- Show Results ---")
     for i in range(25):
         print(generator.generate_text(start="ma"))
+
+    # Evaluate the model
+    print("--- Evaluate Model ---")
+    generator.evaluate_model(items='dieter')
+    generator.evaluate_model(items=['bruno'])
+    import numpy as np
+    generator.evaluate_model(items=np.array(['dieter']))
+    generator.evaluate_model()
