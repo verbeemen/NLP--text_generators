@@ -2,7 +2,7 @@ import os
 import torch
 
 
-class NGramTextGenerator:
+class NGramWordGenerator:
     def __init__(self, n: int = 3, path_corpus: str = "./data/names.csv", seed: int = 26071991, start_stop_token: str = "#"):
         """A simple model that generates text, given a corpus of words or sentences.
             Basically it will select the next highest possible character based on the probability distribution of a given ngram.
@@ -251,10 +251,10 @@ class NGramTextGenerator:
 if __name__ == "__main__":
 
     # Import the necessary libraries
-    from n_gram_text_generator.generator import NGramTextGenerator
+    from n_gram_word_generator.generator import NGramWordGenerator
 
     # Initialize the generator
-    generator = NGramTextGenerator(n=3, path_corpus="./data/names.csv", seed=42)
+    generator = NGramWordGenerator(n=3, path_corpus="./data/names.csv", seed=42)
 
     # Show some results
     print("--- Show Results ---")

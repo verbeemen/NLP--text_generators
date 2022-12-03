@@ -1,6 +1,6 @@
-# NLP - N-Gram Text Generator
+# NLP - N-Gram Word Generator
 
-The N-Gram Text Generator is a simple Python script that generates text (words) based on n-grams.  
+The N-Gram Word Generator is a simple Python script that generates text (words) based on n-grams.  
 Basically, it takes **n** characters and chooses the next character according to a probability distribution.  
 (See: Markov Chain)
 
@@ -16,10 +16,10 @@ Basically, it takes **n** characters and chooses the next character according to
 ```python
 
     # Import the necessary libraries
-    from n_gram_text_generator.generator import NGramTextGenerator
+    from n_gram_word_generator.generator import NGramWordGenerator
 
     # Initialize the generator
-    generator = NGramTextGenerator(n=4, path_corpus="./data/names.csv", seed=42)
+    generator = NGramWordGenerator(n=4, path_corpus="./data/names.csv", seed=42)
 ```
 
 ## Results:
