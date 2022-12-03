@@ -104,4 +104,4 @@ Intuitively, if the model generates a next character with a high probability, E.
 then the negative log probability of that character is -log(0.8) = 0.22.
 otherwise, if the model generates a next character with a very low probability, E.g. 0.01,
 then the negative log probability of that character is -log(0.01) = 4.6.  
-(The Negative log likelihood is always a number between 0 and infinity)
+(The Negative log likelihood is always a number between 0 and infinity.)
