@@ -16,6 +16,8 @@
 			"**/**checkpoints": true
 		},
 		"cSpell.words": [
+			"logits",
+			"multinomial",
 			"NGRAM"
 		]
 	}

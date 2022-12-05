@@ -1,23 +1,33 @@
 import os
 import torch
+from tqdm import tqdm
 
+print(f"GPU: {torch.cuda.is_available()}")
+
+print(torch.cuda.device_count())
+print(torch.cuda.current_device())
+print(torch.cuda.device(0))
+print(torch.cuda.get_device_name(0))
+
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Model(torch.nn.Module):
-    def __init__(self, seed) -> None:
+    def __init__(self, n = 3, embedding_size = 10, hidden_layer_size = 200, seed = 42) -> None:
         super().__init__()
 
         # generator
         self.g = torch.Generator().manual_seed(seed)
 
         # embedding layer
-        self.emb = torch.randn((27, 2), dtype=torch.float32, requires_grad=True, generator=self.g)
+        self.emb = torch.randn((27, embedding_size), dtype=torch.float32, requires_grad=True, generator=self.g)
 
         # first layer
-        self.w1 = torch.randn((6, 100), dtype=torch.float32, requires_grad=True, generator=self.g)
-        self.b1 = torch.randn((100,), dtype=torch.float32, requires_grad=True, generator=self.g)
+        self.w1 = torch.randn((embedding_size * n, hidden_layer_size), dtype=torch.float32, requires_grad=True, generator=self.g)
+        self.b1 = torch.randn((hidden_layer_size,), dtype=torch.float32, requires_grad=True, generator=self.g)
 
         # second layer
-        self.w2 = torch.randn((100, 27), dtype=torch.float32, requires_grad=True, generator=self.g)
+        self.w2 = torch.randn((hidden_layer_size, 27), dtype=torch.float32, requires_grad=True, generator=self.g)
         self.b2 = torch.randn((27,), dtype=torch.float32, requires_grad=True, generator=self.g)
 
         # list of all parameters
@@ -25,7 +35,6 @@ class Model(torch.nn.Module):
 
 
     def __call__(self, x):
-
         emb = self.emb[x].view(-1, self.emb.shape[1] * x.shape[-1])
         inner_prod = emb @ self.w1 + self.b1
         h = torch.tanh(inner_prod)
@@ -52,8 +61,11 @@ class CBOWGenerator:
         X, y = self.create_training_data(corpus)
 
         # Load the model
-        self.model = Model(seed)
+        self.model = Model(n=n, seed=seed).to(device)
         self.train_model(X, y)
+
+        # set a random seed
+        self.g = torch.Generator().manual_seed(seed)
         
         
     def set_path_corpus(self, path_corpus):
@@ -142,16 +154,16 @@ class CBOWGenerator:
                 y.append(self.dict_char_to_idx[next_char])
 
         # convert the lists to tensors
-        return torch.tensor(X, dtype=torch.long), torch.tensor(y, dtype=torch.int64)
+        return torch.tensor(X, dtype=torch.long).to(device), torch.tensor(y, dtype=torch.int64).to(device)
 
 
     
-    def train_model(self, X, Y):
+    def train_model(self, X, Y, batch_size = 64):
 
-        for i in range(10_000):
+        for i in tqdm(range(150_000), desc="Training"):
 
             # take a minibatch
-            ix = torch.randint(0, X.shape[0], (32,))
+            ix = torch.randint(0, X.shape[0], (batch_size,))
 
 
             #
@@ -189,12 +201,16 @@ class CBOWGenerator:
             loss.backward()
 
             # Update the parameters
+            lr = 0.1 if i < 100_000 else 0.01
             for param in self.model.parameters:
-                param.data += -0.1 * param.grad
+                param.data += -lr * param.grad
+
         else:
             # Final evaluation
             loss = torch.nn.functional.cross_entropy(self.model(X), Y)
             print(f"Loss: {loss.item():.4f}")
+
+
 
     def generate_text(self, start="") -> str:
         """Generate a text given a start string.
@@ -204,11 +220,35 @@ class CBOWGenerator:
             @return: text (str): Generated text.
         """
 
-        # start from:
-        ngram = (self.start_stop_token * self.ngram + start.lower())[-self.ngram :]
-        ngram = torch.tensor([self.dict_char_to_idx[char] for char in ngram], dtype=torch.int64)
+        # output values
+        out = [self.dict_char_to_idx[char] for char in start.lower().strip()]
 
-        return self.model(ngram)
+        # stop i
+        stop_i = self.dict_char_to_idx[self.start_stop_token]
+
+        # String to tokens
+        ngram = ([stop_i] * self.ngram + out)[-self.ngram :]
+
+        # generate the next characters
+        while True:
+
+            # Get the logits
+            logits = self.model(torch.tensor([ngram], dtype=torch.int64))
+
+            # Get the probabilities & next char
+            probabilities = torch.nn.functional.softmax(logits, dim=1)
+            ix = torch.multinomial(probabilities, num_samples=1, generator=self.g).item()
+
+            # if ix == 0, we have reached the end of the text
+            if ix == stop_i:
+                break
+            
+            # add ix to the output
+            out.append(ix)
+
+            # update the ngram
+            ngram = ngram[1:] + [ix]
+        return ''.join([self.dict_idx_to_char[i] for i in out])
 
 
 if __name__ == "__main__":
@@ -219,19 +259,12 @@ if __name__ == "__main__":
     # Initialize the generator
     generator = CBOWGenerator(n=3, path_corpus="./data/names.csv", seed=42)
 
-    # # Show some results
-    # print("--- Show Results ---")
-    # for i in range(5):
-    #     generator.generate_text()
+    # Show some results
+    print("--- Show Results ---")
+    for i in range(25):
+        print(generator.generate_text())
 
-    # print("--- Show Results ---")
-    # for i in range(25):
-    #     print(generator.generate_text(start="ma"))
+    print("--- Show Results ---")
+    for i in range(25):
+        print(generator.generate_text(start="ma"))
 
-    # # Evaluate the model
-    # print("--- Evaluate Model ---")
-    # generator.evaluate_model(items='dieter')
-    # generator.evaluate_model(items=['bruno'])
-    # import numpy as np
-    # generator.evaluate_model(items=np.array(['dieter']))
-    # generator.evaluate_model()
