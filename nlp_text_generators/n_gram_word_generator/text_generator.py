@@ -251,7 +251,7 @@ class NGramWordGenerator:
 if __name__ == "__main__":
 
     # Import the necessary libraries
-    from n_gram_word_generator.generator import NGramWordGenerator
+    from nlp_text_generators.n_gram_word_generator.text_generator import NGramWordGenerator
 
     # Initialize the generator
     generator = NGramWordGenerator(n=3, path_corpus="./data/names.csv", seed=42)
